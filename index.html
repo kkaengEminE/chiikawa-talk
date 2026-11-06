@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>먼작귀 말투 변환기</title>
+  <meta name="description" content="한글 문장을 치이카와·하치와레·우사기 말투로 바꿔 주는 비공식 팬 제작 놀이터" />
+  <link rel="icon" href="icons/hachiware.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header class="top">
+    <div class="brand">
+      <h1>먼작귀 말투 변환기</h1>
+      <p class="sub">한글로 적으면 고른 친구의 말투로 바꿔 줄게!</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="chars" id="chars" aria-label="캐릭터 고르기"></section>
+
+    <section class="card input-card">
+      <label for="input" class="card-label">한글로 적어 줘</label>
+      <textarea id="input" rows="4" maxlength="200" placeholder="예) 오늘 너무 배고파요 ㅠㅠ 맛있는 거 먹고 싶다!"></textarea>
+      <div class="input-foot">
+        <span class="hint" id="hint"></span>
+        <span class="counter"><span id="count">0</span> / <span id="max">200</span></span>
+      </div>
+      <button id="go" class="pill primary big" type="button">변환하기 ✦</button>
+    </section>
+
+    <section class="card result-card" id="result-card" hidden>
+      <div class="result-head">
+        <img id="result-icon" class="result-icon" alt="" />
+        <span class="result-name" id="result-name"></span>
+      </div>
+      <p class="bubble" id="result"></p>
+      <div class="result-foot">
+        <span class="mode" id="mode"></span>
+        <span class="btns">
+          <button id="again" class="pill small" type="button">다시 ↻</button>
+          <button id="copy" class="pill small" type="button">복사</button>
+        </span>
+      </div>
+    </section>
+
+    <section class="card note-card">
+      <p id="note" class="note" hidden></p>
+    </section>
+
+    <footer class="notice">
+      <p>비공식 팬 제작 놀이터예요. 치이카와(먼작귀)의 모든 권리는 원작자 나가노와 판권사에 있어요. 권리자 요청이 있으면 예고 없이 내릴 수 있고, 결과는 원작 설정과 다를 수 있어요.</p>
+      <p>AI 변환은 <b>내 AI 설정</b>에 넣은 키가 먼저 쓰이고, 없으면 사이트가 제공하는 무료 AI(사람마다 하루 <span id="free-cap">30</span>회), 그것도 없으면 규칙 모드로 바꿔요.</p>
+      <p class="admin-line"><button id="admin-open" class="linklike" type="button">관리자 설정</button></p>
+    </footer>
+  </main>
+
+  <!-- 방문자용 AI 설정 버튼 (하단 구석, 광고 위) -->
+  <button id="ai-open" class="pill fab" type="button" aria-haspopup="dialog">
+    <span class="dot" id="ai-dot" aria-hidden="true"></span><span id="ai-label">내 AI 설정</span>
+  </button>
+
+  <!-- 광고 자리: 모바일 320×50 / 데스크톱 728×90. 아래 placeholder를 광고 코드로 바꾸면 됨 -->
+  <aside class="ad-slot" id="ad-slot" aria-label="광고">
+    <div class="ad-placeholder">광고</div>
+  </aside>
+
+  <!-- 방문자용 AI 설정 모달 -->
+  <dialog id="ai-dialog" class="dialog">
+    <form method="dialog" class="dialog-body" id="ai-form">
+      <h2>내 AI 설정</h2>
+      <p class="dialog-sub">내 API 키를 넣으면 그 키로 더 자연스럽게 바꿔요.</p>
+      <ul class="dialog-list">
+        <li>키가 있으면 <b>내 키가 먼저</b> 쓰여요. 없으면 사이트의 무료 AI, 그것도 없으면 규칙 모드.</li>
+        <li>키는 <b>이 브라우저에만</b> 저장되고, 다시 와도 그대로 써요. 사이트 서버로는 보내지 않아요.</li>
+        <li>요금은 각 제공사 계정에 청구돼요. <b>제거</b>를 누르면 이 브라우저에서 지워져요.</li>
+      </ul>
+      <div class="tabs" id="provider-tabs" role="tablist"></div>
+      <label class="field">
+        <span>API 키</span>
+        <span class="keywrap">
+          <input id="api-key" type="password" autocomplete="off" spellcheck="false" />
+          <button type="button" class="eye" data-for="api-key" aria-label="키 보기" aria-pressed="false">👁</button>
+        </span>
+      </label>
+      <label class="field">
+        <span>모델 <small>(비워 두면 기본값)</small></span>
+        <input id="api-model" type="text" autocomplete="off" spellcheck="false" />
+      </label>
+      <p class="dialog-hint"><a id="key-link" href="#" target="_blank" rel="noopener">키 발급 페이지 열기 ↗</a></p>
+      <div class="dialog-btns">
+        <button type="button" id="ai-disconnect" class="pill danger">제거</button>
+        <span class="grow"></span>
+        <button type="button" id="ai-cancel" class="pill">닫기</button>
+        <button type="submit" id="ai-save" class="pill primary">저장</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- 관리자 모달 -->
+  <dialog id="admin-dialog" class="dialog">
+    <div class="dialog-body">
+      <h2>관리자 설정</h2>
+      <form id="admin-auth">
+        <p class="dialog-sub" id="admin-auth-sub"></p>
+        <label class="field">
+          <span id="admin-pw-label">비밀번호</span>
+          <input id="admin-pw" type="password" autocomplete="current-password" />
+        </label>
+        <label class="field" id="admin-pw2-field" hidden>
+          <span>비밀번호 확인</span>
+          <input id="admin-pw2" type="password" autocomplete="new-password" />
+        </label>
+        <p class="dialog-hint error" id="admin-auth-err" hidden></p>
+        <div class="dialog-btns">
+          <span class="grow"></span>
+          <button type="button" class="pill admin-close">닫기</button>
+          <button type="submit" class="pill primary" id="admin-auth-go">들어가기</button>
+        </div>
+      </form>
+
+      <form id="admin-settings" hidden>
+        <p class="dialog-sub">방문자에게 제공하는 무료 AI예요. 방문자가 자기 키를 넣으면 그게 먼저 쓰여요.</p>
+        <label class="check">
+          <input id="adm-enabled" type="checkbox" /> <span>무료 AI 켜기</span>
+        </label>
+        <div class="tabs" id="adm-tabs" role="tablist"></div>
+        <label class="field">
+          <span>API 키 <small id="adm-key-hint"></small></span>
+          <span class="keywrap">
+            <input id="adm-key" type="password" autocomplete="off" spellcheck="false" />
+            <button type="button" class="eye" data-for="adm-key" aria-label="키 보기" aria-pressed="false">👁</button>
+          </span>
+          <small class="field-note">저장된 키가 그대로 들어 있어요. 고쳐서 저장하면 교체, 비워서 저장하면 삭제.</small>
+        </label>
+        <label class="field">
+          <span>모델 <small>(비워 두면 기본값)</small></span>
+          <input id="adm-model" type="text" autocomplete="off" spellcheck="false" />
+        </label>
+        <label class="field">
+          <span>사람(IP)당 하루 횟수</span>
+          <input id="adm-perday" type="number" min="0" max="10000" step="1" />
+        </label>
+        <p class="dialog-hint"><a id="adm-key-link" href="#" target="_blank" rel="noopener">키 발급 페이지 열기 ↗</a></p>
+        <details class="pw-change">
+          <summary>비밀번호 바꾸기</summary>
+          <label class="field">
+            <span>새 비밀번호 <small>(6자 이상)</small></span>
+            <input id="adm-newpw" type="password" autocomplete="new-password" />
+          </label>
+        </details>
+        <p class="dialog-hint error" id="admin-err" hidden></p>
+        <p class="dialog-hint ok" id="admin-ok" hidden></p>
+        <div class="dialog-btns">
+          <span class="grow"></span>
+          <button type="button" class="pill admin-close">닫기</button>
+          <button type="submit" class="pill primary" id="admin-save">저장</button>
+        </div>
+      </form>
+    </div>
+  </dialog>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

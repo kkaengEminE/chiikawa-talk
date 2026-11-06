@@ -1,0 +1,23 @@
+// 관리자 비밀번호 해시 — Node 기본 모듈(scrypt)만 사용.
+import { randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
+
+const KEYLEN = 32;
+
+export function hashPassword(password) {
+  const salt = randomBytes(16).toString('hex');
+  const hash = scryptSync(String(password), salt, KEYLEN).toString('hex');
+  return `scrypt$${salt}$${hash}`;
+}
+
+export function verifyPassword(password, stored) {
+  if (!password || typeof stored !== 'string') return false;
+  const [algo, salt, hash] = stored.split('$');
+  if (algo !== 'scrypt' || !salt || !hash) return false;
+  try {
+    const a = scryptSync(String(password), salt, KEYLEN);
+    const b = Buffer.from(hash, 'hex');
+    return a.length === b.length && timingSafeEqual(a, b);
+  } catch {
+    return false;
+  }
+}
