@@ -170,13 +170,20 @@ function showNote(msg) {
 async function loadFreeStatus() {
   try {
     const r = await fetch('/api/status');
+    if (r.status === 404 || !(r.headers.get('content-type') || '').includes('json')) throw new Error('static');
     if (!r.ok) return;
     state.free = await r.json();
     $('free-cap').textContent = state.free.perDay;
   } catch {
-    /* 정적 호스팅이면 없음 */
+    setStaticMode(); // 서버 없이(GitHub Pages 등) 올라간 경우
   }
   renderAiButton();
+}
+// 정적 호스팅: 운영자 무료 AI·관리자 설정이 없으니 그 부분만 숨긴다. 규칙 모드와 내 키 AI는 그대로.
+function setStaticMode() {
+  state.free = { enabled: false, provider: null, remaining: 0, perDay: 0 };
+  $('admin-open').closest('p').hidden = true;
+  $('free-note').innerHTML = '이 주소에서는 <b>규칙 모드</b>와 <b>내 AI 설정</b>에 넣은 내 키로 하는 AI 변환만 돼요.';
 }
 function renderAiButton() {
   const dot = $('ai-dot');
